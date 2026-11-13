@@ -1,0 +1,22 @@
+// Cloudflare Workers settings for technyah.com.
+// "name" must match the Worker's name in the Cloudflare dashboard (Workers & Pages list).
+{
+  "name": "technyah",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-06-01",
+  // Runs on every deploy, so the dashboard needs no build command.
+  "build": { "command": "node build.mjs" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "observability": { "enabled": true }
+
+  // Contact-system storage (optional, DEPLOY.md Part B). Create the database and namespace in
+  // Cloudflare, paste their IDs, remove the // in front of the lines, and push.
+  // ,"d1_databases": [{ "binding": "DB", "database_name": "technyah", "database_id": "PASTE-D1-ID" }]
+  // ,"kv_namespaces": [{ "binding": "FILES", "id": "PASTE-KV-ID" }]
+}

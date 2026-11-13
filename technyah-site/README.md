@@ -1,6 +1,6 @@
 # technyah.com
 
-Static site plus a small contact API, built for Cloudflare Pages. See **DEPLOY.md** to put it online.
+Static site plus a small contact API, running as a Cloudflare Worker. See **DEPLOY.md** to put it online.
 
 | Folder | What is in it |
 |---|---|
