@@ -1,12 +1,18 @@
 /* /api/admin/<action>: the private inbox behind /admin/. Every call needs "Authorization: Bearer <ADMIN_TOKEN>".
-   list · item · update · delete · file · stats */
-import { json, clean, ensureSchema, isAdmin, TYPES } from '../../_shared/lib.js';
+   list · item · update · delete · file · stats · testmail */
+import { json, clean, ensureSchema, isAdmin, TYPES, config, sendEmailDetailed } from '../../_shared/lib.js';
 
 const STATUSES = ['new', 'in progress', 'waiting', 'closed'];
 
 export async function onRequest({ request, env, params }) {
   if (!env.ADMIN_TOKEN || env.ADMIN_TOKEN.length < 16) return json({ ok: false, error: 'The inbox is switched off. Add the ADMIN_TOKEN secret (16 characters or more) in Cloudflare.' }, 503);
   if (!(await isAdmin(request, env))) return json({ ok: false, error: 'Wrong or missing access token.' }, 401);
+  if (params.action === 'testmail') {
+    const cfg = config(env);
+    if (!env.RESEND_API_KEY) return json({ ok: false, error: 'RESEND_API_KEY is not set on this Worker (Settings > Variables and Secrets).' });
+    const r = await sendEmailDetailed(env, { to: cfg.to, cc: cfg.cc, subject: 'TECHNYAH website email test', text: 'If you can read this, the website can send email.\n', html: '<p>If you can read this, the website can send email.</p>' });
+    return json({ ok: r.ok, from: cfg.from, to: cfg.to, cc: cfg.cc, status: r.status, resend: r.detail });
+  }
   if (!env.DB) return json({ ok: false, error: 'No database is connected. Add the D1 binding named DB in Cloudflare.' }, 503);
   await ensureSchema(env.DB);
 

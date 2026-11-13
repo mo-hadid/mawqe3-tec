@@ -857,3 +857,49 @@ mark { background: #D6F3FA; color: inherit; padding: 0 1px; border-radius: 2px; 
   .nura-btn { right: 14px; bottom: 14px; }
 }
 @media print { .site-header, .footer, .nura-btn, .nura-panel, .cta-band { display: none; } }
+
+/* ============================================================
+   Plainer look (v7): fewer decorative devices, sentence case,
+   flat surfaces, text-led sections.
+   ============================================================ */
+:root { --radius: 4px; --shadow: none; }
+h1 { letter-spacing: -0.005em; }
+h2 { text-transform: none; letter-spacing: 0; font-weight: 700; font-size: clamp(1.7rem, 3.2vw, 2.3rem); }
+h3, h4, .steps h3, .trust-item h3 { text-transform: none; letter-spacing: 0; }
+.eyebrow, .kicker, .hero-grid, .hero-points, .trust-strip { display: none; }
+.cta-btn, .btn-outline { text-transform: none; letter-spacing: 0.01em; font-size: 1.1rem; padding: 12px 24px; }
+.tile-more, .suggest-all a { text-transform: none; letter-spacing: 0; }
+.tile, .side-card, .form-shell, .faq details { box-shadow: none; }
+.tile:hover { transform: none; }
+.hero-illustration, .hero-media .photo-fallback, .photo-fallback { background-image: none; }
+.hero-content { padding: 88px 24px 96px; }
+
+/* section head: heading left, short note right */
+.split-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 12px 48px; align-items: end; margin-bottom: 30px; padding-bottom: 18px; border-bottom: 2px solid var(--ink); }
+.split-head h2 { margin: 0; }
+.split-head p { margin: 0; color: var(--muted); }
+
+/* text list of services / industries, two columns with hairlines */
+.service-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+.service-list a { display: block; padding: 18px 0; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--body); }
+.service-list h3 { font-size: 1.25rem; margin: 0 0 4px; color: var(--ink); }
+.service-list p { margin: 0; font-size: 0.97rem; }
+.service-list a:hover h3 { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 3px; }
+.area-line { margin: 26px 0 0; color: var(--muted); }
+
+.facts-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; margin-bottom: 36px; }
+.facts-row h3 { font-size: 1.2rem; margin: 0 0 6px; color: var(--ink); }
+.facts-row p { margin: 0; }
+.steps { border-radius: 0; }
+
+.partners-row { gap: 48px; flex-wrap: wrap; }
+.partners-row a, .partners-row > span { display: inline-flex; align-items: center; text-decoration: none; }
+.partners-row img { height: 72px; width: auto; max-width: 240px; object-fit: contain; }
+.partner-chip { text-transform: none; letter-spacing: 0; border-style: solid; }
+
+@media (max-width: 760px) {
+  .split-head, .service-list, .facts-row { grid-template-columns: 1fr; }
+  .facts-row { gap: 22px; }
+}
+.partners-row { justify-content: flex-start; } .partners-row img { filter: none; opacity: 1; }
+.hero-media::before, .hero-media::after { display: none; } .nav-cta { text-transform: none; letter-spacing: 0.01em; }

@@ -18,20 +18,32 @@ The site runs as a Cloudflare **Worker** (`wrangler.jsonc` + `src/worker.js`). T
 
 ## Part B. Switch on the contact system
 
-Each step is independent. Secrets: Worker → **Settings → Variables and Secrets → Add → Secret**. They survive every deploy.
+**Saving messages and files is automatic.** The first deploy creates the database (`technyah-forms`) and file storage,
+so every form and NURA message is saved with a reference number from then on.
+
+Secrets: Worker → **Settings → Variables and Secrets → Add** → type **Secret**.
 
 | # | What it gives you | How | Name |
 |---|---|---|---|
-| 1 | Every message saved with a reference number | **Storage & Databases → D1** → create `technyah` → copy its ID into the `d1_databases` line of `wrangler.jsonc`, remove the `//` in front, commit | `DB` |
-| 2 | Resumes and drawings saved | **Storage & Databases → KV** → create `technyah-files` → copy its ID into the `kv_namespaces` line, remove the `//`, commit | `FILES` |
-| 3 | The private inbox at `/admin/` | Secret, 32 or more random characters | `ADMIN_TOKEN` |
-| 4 | Emails to info@, hr@ and mhadid@, with Reply-To set to the sender, plus a confirmation to the sender | Free account at resend.com, add the domain `technyah.com`, add the DNS records it lists, create an API key, save it as a Secret | `RESEND_API_KEY` |
-| 5 | Spam check on every form | **Turnstile → Add widget** for `technyah.com`. Put the *site key* in `content/site.json` (`turnstileSiteKey`) and commit. Save the *secret key* as a Secret | `TURNSTILE_SECRET` |
+| 1 | The private inbox at `/admin/` (read messages, download files, send a test email) | Secret, 32 or more random characters. Keep it in your password manager | `ADMIN_TOKEN` |
+| 2 | Emails to info@, hr@ and mhadid@ with Reply-To set to the sender, plus a confirmation to the sender | See "Email" below | `RESEND_API_KEY` |
+| 3 | Spam check on every form | **Turnstile → Add widget** for `technyah.com`. Put the *site key* in `content/site.json` (`turnstileSiteKey`) and commit. Save the *secret key* as a Secret | `TURNSTILE_SECRET` |
 
-Step 4 alone is enough for forms to work (email only). The table is created automatically on the first message.
+### Email (Resend, free up to 3,000 a month)
+1. Sign up at resend.com → **Domains → Add domain** → `technyah.com`.
+2. Add the DNS records Resend lists (they go on a `send.` subdomain and do not touch your current mailboxes). Wait until Resend shows **Verified**.
+3. **API Keys → Create** (Sending access) → copy it → add it to the Worker as the Secret `RESEND_API_KEY`.
+4. Open `https://technyah.com/admin/`, sign in, press **Send test email**. It sends to info@ with mhadid@ copied, or shows Resend's exact error.
+
+Common errors from the test: *domain is not verified* (step 2 not finished), *API key is invalid* (re-copy the key, no spaces),
+*not authorized to send from* (the From address must be on the verified domain; change `MAIL_FROM` if you verified a subdomain).
 
 Optional plain variables: `MAIL_TO` (default info@technyah.com), `MAIL_HR` (hr@technyah.com), `MAIL_CC` (mhadid@technyah.com),
 `MAIL_FROM` (`TECHNYAH <info@technyah.com>`), `SITE_URL`, `SEND_CONFIRMATION=off`.
+
+### Partner logos
+Upload `icg-logo.png` and `amp-logo.png` to `public/images/partners/` in GitHub (exact names, lower case).
+They appear on the home and About pages on the next deploy. Until then the names show as text.
 
 ## Part C. Move technyah.com to Cloudflare
 
@@ -66,16 +78,16 @@ Optional plain variables: `MAIL_TO` (default info@technyah.com), `MAIL_HR` (hr@t
 |---|---|
 | "Could not detect a directory containing static files" | `wrangler.jsonc` is not at the top of the repository. Upload the files themselves, not the `technyah-site` folder, or set the Worker's **Settings → Build → Root directory** to that folder name |
 | "The name in your wrangler.jsonc does not match" | Part A step 2: make `"name"` match the Worker's name |
-| `/api/health` shows `storage: false` after creating D1 | The ID is not in `wrangler.jsonc`, or the `//` is still in front of the line |
+| `/api/health` shows `storage: false` | The deploy log should list `env.DB (technyah-forms)`. If not, check that `wrangler.jsonc` was uploaded in full |
 | Build fails with "node: not found" or a syntax error | `NODE_VERSION` is missing. Set it to `22` and retry |
 | technyah.com still shows the old site | DNS still points to GitHub. Finish Part C steps 3 to 5 and wait for the nameserver change |
-| Form says "not able to deliver messages right now" | Neither storage nor email is configured. Check `/api/health`, then Part B steps 1 or 4 |
+| Form says "not able to deliver messages right now" | Storage is missing and email is not working. Check `/api/health`; the deploy log should list `env.DB` |
 | Messages are saved but no email arrives | `email: false` → add `RESEND_API_KEY`. If `true`, the domain is not verified in Resend, or `MAIL_FROM` is not on that domain. Worker → **Observability → Logs** shows the reason |
 | Email stopped after moving DNS | An `MX` or `TXT` record was not carried over. Re-add it (Part C step 2) |
 | "The spam check did not pass" on every send | The site key and secret key are from different Turnstile widgets, or the widget does not list your domain |
 | Inbox says "switched off" | `ADMIN_TOKEN` is missing or shorter than 16 characters |
 | Inbox says "token was not accepted" | Paste the exact secret value |
-| "File did not come through" after an upload | `FILES` is not set up (Part B step 2), or the file is over 10 MB |
+| "File did not come through" after an upload | The file is over 10 MB or not an accepted type |
 | A page works on workers.dev but not on technyah.com | The custom domain is still "verifying". It finishes once nameservers have switched |
 | Search or NURA shows nothing | `search-index.json` or `assistant.json` did not build. Run `npm run build` locally and read the last line |
 

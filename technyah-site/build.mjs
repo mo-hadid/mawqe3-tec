@@ -159,13 +159,26 @@ function emit(url, opts, { kind = 'Page', keywords = [], index = true, search = 
 }
 
 /* ---------- shared fragments ---------- */
-const pageHero = (eyebrow, h1, lead, crumbs) => `<section class="page-hero"><div class="hero-grid"></div><div class="container">
+const pageHero = (eyebrow, h1, lead, crumbs) => `<section class="page-hero"><div class="container">
 ${crumbs ? `<ol class="breadcrumbs">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<li><a href="${c.url}">${esc(c.name)}</a></li>` : `<li aria-current="page">${esc(c.name)}</li>`).join('')}</ol>` : ''}
 <p class="eyebrow">${esc(eyebrow)}</p><h1>${esc(h1)}</h1>${lead ? `<p>${esc(lead)}</p>` : ''}</div></section>`;
 
 const ctaBand = (h, p, a = ['/quote/', 'Request a quote'], b = ['/contact/', 'Ask a question']) => `<section class="cta-band"><div class="container">
 <div><h2>${esc(h)}</h2><p>${esc(p)}</p></div>
 <div class="hero-actions"><a href="${a[0]}" class="cta-btn">${esc(a[1])}</a><a href="${b[0]}" class="btn-outline">${esc(b[1])}</a></div></div></section>`;
+
+/* Partner logos. Upload the images to public/images/partners/ (or public/images/, or the top of the repository)
+   with exactly these file names; until a file is there, the partner's name is shown instead. */
+const PARTNERS = [
+  { file: 'icg-logo.png', name: 'Iron Core Group' },
+  { file: 'amp-logo.png', name: 'A&M Propertiez', url: 'https://ampropertiez.com' },
+];
+const partnerSrc = f => [path.join(PUB, 'images/partners', f), path.join(PUB, 'images', f), path.join(ROOT, f)].find(x => fs.existsSync(x));
+const partnersSection = (cls = '') => `<section class="section ${cls}"><div class="container">
+  <div class="split-head"><h2>Partners</h2><p>Companies we work alongside.</p></div>
+  <div class="partners-row">${PARTNERS.map(p => { const inner = partnerSrc(p.file) ? `<img src="/images/partners/${p.file}" alt="${esc(p.name)}" loading="lazy">` : `<span class="partner-chip">${esc(p.name)}</span>`;
+    return p.url ? `<a href="${p.url}" rel="noopener" title="${esc(p.name)}">${inner}</a>` : `<span title="${esc(p.name)}">${inner}</span>`; }).join('')}</div>
+</div></section>`;
 
 const serviceTile = s => `<a class="tile" href="/services/${s.slug}/">${media(s.photo)}<div class="tile-body"><p class="spec-label">${esc(s.label)}</p><h3>${esc(s.title)}</h3><p>${esc(s.short)}</p><span class="tile-more">Details &rarr;</span></div></a>`;
 const serviceIconTile = s => `<a class="tile icon-tile" href="/services/${s.slug}/"><img src="/images/graphics/${s.icon}.svg" alt="" width="64" height="48" loading="lazy"><div class="tile-body"><h3>${esc(s.title)}</h3><p>${esc(s.short)}</p></div></a>`;
@@ -196,56 +209,51 @@ emit('/', {
   title: 'TECHNYAH | Industrial Automation, Robotics & Controls in Lakeland, Florida',
   description: site.description,
   schema: [org, { '@type': 'WebSite', '@id': site.url + '/#website', url: site.url + '/', name: site.name, publisher: { '@id': ORG_ID } }, faqSchema(site.homeFaqs)],
-  body: `<section class="hero-section"><div class="hero-grid"></div>
+  body: `<section class="hero-section">
 <div class="hero-content">
   <div>
-    <p class="kicker">Transforming automation, redefining possibilities</p>
     <h1>Automation, robotics and controls for Florida manufacturers</h1>
-    <p class="hero-sub">We program, integrate and repair the equipment that runs your line: robots, PLCs, conveyors, vision and custom machines. Based in ${esc(site.locality)}, working across Polk County, Tampa Bay and Orlando.</p>
-    <div class="hero-actions"><a href="/quote/" class="cta-btn">Request a quote</a><a href="/services/" class="btn-outline">See our services</a></div>
-    <ul class="hero-points"><li>Reply within ${esc(site.responseTime)}</li><li>Machines we did not build are welcome</li><li>You keep the source code</li></ul>
+    <p class="hero-sub">We program, integrate and repair the equipment that runs your line: robots, PLCs, conveyors, vision systems, custom machines and the networks that connect them. Based in ${esc(site.locality)}, working across Polk County, Tampa Bay and Orlando.</p>
+    <div class="hero-actions"><a href="/quote/" class="cta-btn">Request a quote</a><a href="/services/" class="btn-outline">Our services</a></div>
   </div>
   <div class="hero-media">${heroMedia}</div>
 </div></section>
 
-<section class="trust-strip"><div class="container grid-3">
-  <div class="trust-item"><h3><span class="tick">&#10003;</span>Hands-on from first test to handover</h3><p>The people who scope your job are the people who program it, commission it and answer the phone afterward.</p></div>
-  <div class="trust-item"><h3><span class="tick">&#10003;</span>Built to recognized standards</h3><p>Machine safety, electrical and robot standards guide every design, and each robot application gets a documented risk assessment.</p></div>
-  <div class="trust-item"><h3><span class="tick">&#10003;</span>One schedule, the right licenses</h3><p>We bring in licensed electrical contractors and certified panel shops where the work calls for them, under one plan.</p></div>
-</div></section>
-
 <section class="section"><div class="container">
-  <div class="section-head"><p class="eyebrow">What we do</p><h2>Automation services</h2><p>Eight services that cover a production line from a single stubborn fault to a new robot cell.</p></div>
-  <div class="grid-2">${services.map(serviceIconTile).join('')}</div>
+  <div class="split-head"><h2>What we do</h2><p>From a single fault that keeps stopping a machine to a new robot cell, and the network and servers behind it.</p></div>
+  <div class="service-list">${services.map(s => `<a href="/services/${s.slug}/"><h3>${esc(s.title)}</h3><p>${esc(s.short)}</p></a>`).join('')}</div>
 </div></section>
 
 <section class="section alt"><div class="container">
-  <div class="section-head"><p class="eyebrow">Who we work for</p><h2>Industries across Central Florida</h2><p>Polk County sits between Tampa and Orlando with one of the densest clusters of food, packaging, building-product and distribution operations in the state.</p></div>
-  <div class="grid-3">${industries.map(industryTile).join('')}</div>
-</div></section>
-
-<section class="section"><div class="container">
-  <div class="section-head"><p class="eyebrow">How a job runs</p><h2>Four steps, in writing</h2></div>
+  <div class="split-head"><h2>How we work</h2><p>Small team, written scope, no surprises.</p></div>
+  <div class="facts-row">
+    <div><h3>The same people, start to finish</h3><p>Whoever scopes your job programs it, commissions it and answers the phone afterward. Machines we did not build are welcome.</p></div>
+    <div><h3>Everything in writing</h3><p>A written scope with what is included, what you provide, a dated plan and a fixed price or hourly rate. You keep the source code.</p></div>
+    <div><h3>Licensed where it counts</h3><p>Electrical installation is done by licensed contractors, listed panels by certified shops, and sealed designs by licensed engineers.</p></div>
+  </div>
   <ol class="steps">
     <li><h3>See the machine</h3><p>A site visit or photos, the controller model, the fault history and whatever drawings exist.</p></li>
-    <li><h3>Agree the scope</h3><p>A written scope with what is included, what you provide, a dated plan and a fixed price or hourly rate.</p></li>
-    <li><h3>Build and test</h3><p>Programs are tested before they reach your floor, so start-up time is spent proving the machine, not debugging it.</p></li>
-    <li><h3>Commission and hand over</h3><p>We prove the acceptance test with your team, train operators and hand over source files, backups and records.</p></li>
+    <li><h3>Agree the scope</h3><p>What is included, what you provide, a dated plan and the price.</p></li>
+    <li><h3>Build and test</h3><p>Programs are tested before they reach your floor, so start-up is spent proving the machine, not debugging it.</p></li>
+    <li><h3>Hand over</h3><p>Acceptance test with your team, operator training, source files, backups and records.</p></li>
   </ol>
 </div></section>
 
-<section class="section alt"><div class="container">
-  <div class="section-head"><p class="eyebrow">Service area</p><h2>Lakeland, Polk County and the I-4 corridor</h2><p>${esc(site.homeFaqs[1].a)}</p></div>
-  <ul class="chips">${site.areaServed.map(a => `<li>${esc(a)}</li>`).join('')}</ul>
+<section class="section"><div class="container">
+  <div class="split-head"><h2>Who we work for</h2><p>Polk County sits between Tampa and Orlando, with one of the densest clusters of food, packaging, building-product and distribution operations in the state.</p></div>
+  <div class="service-list">${industries.map(i => `<a href="/industries/${i.slug}/"><h3>${esc(i.title)}</h3><p>${esc(i.short)}</p></a>`).join('')}</div>
+  <p class="area-line">Service area: ${site.areaServed.map(esc).join(', ')}. Projects elsewhere in Florida are scheduled by job.</p>
 </div></section>
 
+${partnersSection('alt')}
+
 <section class="section"><div class="container" style="max-width:860px">
-  <div class="section-head"><p class="eyebrow">Common questions</p><h2>Before you call</h2></div>
+  <h2>Common questions</h2>
   ${faqBlock(site.homeFaqs)}
   <p style="margin-top:18px"><a href="/faq/">More questions and answers &rarr;</a></p>
 </div></section>
 
-${ctaBand('Which machine costs you the most downtime?', 'Tell us about it. You get a reference number at once and a reply from a person within one business day.')}`,
+${ctaBand('Have a machine or line that needs work?', 'Tell us about it. You get a reference number right away and a reply from a person within one business day.')}`,
 }, { keywords: ['automation', 'robotics', 'controls', 'integrator', 'Lakeland', 'Polk County', 'Florida', 'manufacturing'] });
 
 /* =====================================================================
@@ -329,7 +337,7 @@ for (const i of industries) {
     <div class="side-card"><h4>Other industries</h4><ul class="side-links">${industries.filter(o => o.slug !== i.slug).map(o => `<li><a href="/industries/${o.slug}/">${esc(o.title)}</a></li>`).join('')}</ul></div>
   </aside>
 </div></section>
-${ctaBand('Which machine costs you the most downtime?', 'Start there. A short conversation usually shows the cheapest fix first.')}`,
+${ctaBand('Not sure which service fits?', 'Describe the problem and we will tell you where to start.')}`,
   }, { kind: 'Industry', keywords: i.keywords });
 }
 
@@ -356,7 +364,6 @@ ${ctaBand('Need hardware built for one job?', 'Custom fixtures, controllers and 
 /* =====================================================================
    ABOUT
    ===================================================================== */
-const partners = [['amp', 'AMP'], ['iron-core-group', 'Iron Core Group']];
 emit('/about/', {
   title: 'About TECHNYAH: Automation Integrator in Lakeland, Florida',
   description: 'TECHNYAH is a Lakeland, Florida automation company that programs, integrates and repairs robots, controls and production machinery for manufacturers across Central Florida.',
@@ -382,10 +389,7 @@ emit('/about/', {
 </div></section>
 -->
 
-<section class="section alt"><div class="container">
-  <div class="section-head center"><p class="eyebrow">Partnerships</p><h2>Industry partners</h2><p>We work alongside established partners to deliver complete projects.</p></div>
-  <div class="partners-row">${partners.map(([f, n]) => has(`images/partners/${f}.png`) ? `<img src="/images/partners/${f}.png" alt="${n}, industry partner" loading="lazy">` : `<span class="partner-chip">${n}</span>`).join('')}</div>
-</div></section>
+${partnersSection('alt')}
 ${ctaBand('Have a project in mind?', 'Tell us what you need to automate or fix.')}`,
 }, { keywords: ['about', 'company', 'mission', 'partners', 'Lakeland'] });
 
@@ -537,6 +541,7 @@ emit('/404.html', {
    STATIC FILES, DATA FILES, SITEMAP
    ===================================================================== */
 fs.cpSync(PUB, OUT, { recursive: true });
+for (const p of PARTNERS) { const src = partnerSrc(p.file); if (src) { fs.mkdirSync(path.join(OUT, 'images/partners'), { recursive: true }); fs.copyFileSync(src, path.join(OUT, 'images/partners', p.file)); } }
 
 fs.writeFileSync(path.join(OUT, 'search-index.json'), JSON.stringify(searchDocs));
 

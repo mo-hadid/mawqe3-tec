@@ -30,13 +30,13 @@
   }
 
   function showLogin(message) {
-    $('app').hidden = true; $('login').hidden = false; $('refresh').hidden = true; $('signout').hidden = true;
+    $('app').hidden = true; $('login').hidden = false; $('refresh').hidden = true; $('signout').hidden = true; $('testmail').hidden = true;
     var e = $('login-error'); e.textContent = message || ''; e.className = 'form-status err' + (message ? ' show' : '');
   }
   function load() {
     var q = new URLSearchParams({ type: $('f-type').value, status: $('f-status').value, q: $('f-q').value.trim() });
     return api('list?' + q).then(function (body) {
-      $('login').hidden = true; $('app').hidden = false; $('refresh').hidden = false; $('signout').hidden = false;
+      $('login').hidden = true; $('app').hidden = false; $('refresh').hidden = false; $('signout').hidden = false; $('testmail').hidden = false;
       $('items').innerHTML = body.items.length ? body.items.map(function (it) {
         return '<button type="button" class="ad-item' + (it.ref === current ? ' sel' : '') + '" data-ref="' + esc(it.ref) + '"><span class="top"><span>' + esc(LABEL[it.type] || it.type) +
           (it.file_name ? ' · file' : '') + '</span><span>' + esc(when(it.created_at)) + '</span></span><strong>' + esc(it.company ? it.name + ', ' + it.company : it.name) +
@@ -90,6 +90,15 @@
   });
   $('signout').addEventListener('click', function () { token = ''; try { sessionStorage.removeItem(KEY); } catch (e) {} $('token').value = ''; showLogin(''); });
   $('refresh').addEventListener('click', load);
+  $('testmail').addEventListener('click', function () {
+    var b = $('testmail'); b.disabled = true; b.textContent = 'Sending…';
+    fetch('/api/admin/testmail', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).then(function (r) { return r.json(); }).then(function (r) {
+      $('detail').innerHTML = '<h2>' + (r.ok ? 'Test email sent' : 'Test email failed') + '</h2>' +
+        (r.ok ? '<p>Check ' + esc(r.to) + ' and ' + esc(r.cc) + ' (and their spam folders).</p>' : '<p>' + esc(r.error || 'Resend answered with an error:') + '</p>') +
+        (r.resend ? '<pre style="white-space:pre-wrap">From: ' + esc(r.from) + '\nResend ' + esc(String(r.status)) + ': ' + esc(r.resend) + '</pre>' : '');
+    }).catch(function (e) { $('detail').innerHTML = '<p>' + esc(e.message) + '</p>'; })
+      .then(function () { b.disabled = false; b.textContent = 'Send test email'; });
+  });
   $('items').addEventListener('click', function (e) { var b = e.target.closest('.ad-item'); if (b) open(b.getAttribute('data-ref')); });
   ['f-type', 'f-status'].forEach(function (id) { $(id).addEventListener('change', load); });
   $('f-q').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(load, 250); });

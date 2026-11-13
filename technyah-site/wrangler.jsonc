@@ -13,10 +13,12 @@
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
-  "observability": { "enabled": true }
+  // Keep variables typed into the dashboard when a new version deploys.
+  "keep_vars": true,
+  "observability": { "enabled": true },
 
-  // Contact-system storage (optional, DEPLOY.md Part B). Create the database and namespace in
-  // Cloudflare, paste their IDs, remove the // in front of the lines, and push.
-  // ,"d1_databases": [{ "binding": "DB", "database_name": "technyah", "database_id": "PASTE-D1-ID" }]
-  // ,"kv_namespaces": [{ "binding": "FILES", "id": "PASTE-KV-ID" }]
+  // Message storage and file storage. No IDs needed: Cloudflare creates both on the first deploy
+  // and keeps using them after that.
+  "d1_databases": [{ "binding": "DB", "database_name": "technyah-forms" }],
+  "kv_namespaces": [{ "binding": "FILES" }]
 }

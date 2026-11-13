@@ -81,7 +81,7 @@
     "q": ["Do you offer remote support?", "can you connect remotely", "remote troubleshooting", "remote access to the plc"],
     "kw": ["remote", "vpn", "online", "connect", "support"],
     "a": "Yes, where your network policy allows it. A remote session is often the fastest first step, and we can set up secure remote access as part of a project.",
-    "links": [{ "t": "Networks and remote monitoring", "u": "/services/industrial-networks-data/" }] },
+    "links": [{ "t": "Network & server design", "u": "/services/network-server-infrastructure/" }] },
 
   { "id": "brands", "faq": "Scope",
     "q": ["Which PLC and robot brands do you work with?", "do you program Allen-Bradley", "do you work with Siemens", "do you work with FANUC", "do you support Universal Robots", "Schneider Modicon", "what platforms do you support"],

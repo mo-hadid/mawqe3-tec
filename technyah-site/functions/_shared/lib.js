@@ -51,18 +51,20 @@ export async function ensureSchema(db) {
 }
 
 /* Resend (https://resend.com/docs/api-reference/emails/send-email). Returns true when accepted. */
-export async function sendEmail(env, { to, cc, replyTo, subject, html, text }) {
-  if (!env.RESEND_API_KEY) return false;
+export async function sendEmailDetailed(env, { to, cc, replyTo, subject, html, text }) {
+  if (!env.RESEND_API_KEY) return { ok: false, status: 0, detail: 'RESEND_API_KEY is not set' };
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY.trim()}`, 'content-type': 'application/json' },
       body: JSON.stringify({ from: config(env).from, to: [].concat(to), ...(cc ? { cc: [].concat(cc) } : {}), ...(replyTo ? { reply_to: replyTo } : {}), subject, html, text }),
     });
-    if (!res.ok) console.error('email rejected', res.status, (await res.text()).slice(0, 300));
-    return res.ok;
-  } catch (err) { console.error('email failed', err.message); return false; }
+    const detail = (await res.text()).slice(0, 400);
+    if (!res.ok) console.error('email rejected', res.status, detail);
+    return { ok: res.ok, status: res.status, detail };
+  } catch (err) { console.error('email failed', err.message); return { ok: false, status: 0, detail: err.message }; }
 }
+export const sendEmail = async (env, msg) => (await sendEmailDetailed(env, msg)).ok;
 
 export async function spamCheckPassed(env, token, ip) {
   if (!env.TURNSTILE_SECRET) return true;
